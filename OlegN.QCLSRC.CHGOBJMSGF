@@ -1,0 +1,45 @@
+/*----------------------------------------------------------------------------*/
+/* CHGOBJMSGF                                Create MSGF For All Object Types */
+/* Written by Oleg Naymark (NAYMARK_O)  25/07/2024                            */
+/*----------------------------------------------------------------------------*/
+             PGM
+
+             DCL VAR(&MSGID) TYPE(*CHAR) LEN(7)
+             DCL VAR(&MSGDTA) TYPE(*CHAR) LEN(20)
+             DCL VAR(&Lib) TYPE(*CHAR) LEN(20) VALUE('NAYMARK_O')
+             DCL VAR(&MsgF) TYPE(*CHAR) LEN(20) VALUE('OBJTYPES')
+             DCL VAR(&MSGIDNBR) TYPE(*DEC) LEN(4 0) VALUE(1)
+             DCL VAR(&CHARNBR) TYPE(*CHAR) Len(4)
+             DCL VAR(&Pos) TYPE(*DEC) LEN(1 0)
+             DCL VAR(&OBJEC00001) TYPE(*CHAR) LEN(7)
+             Dclf File(NAYMARK_O/OBJTYPES)
+
+             DltF File(&Lib/&Msgf)
+             MonMsg MsgId(CPF0000)
+             Cpyf FromFile(QSYS2/OBJTYPES) ToFile(&Lib/&Msgf) +
+                    MbrOpt(*Add) CrtFile(*Yes)
+             DltMsgF Msgf(&Lib/&Msgf)
+             MonMsg MsgId(CPF0000)
+             CrtMsgf Msgf(&Lib/&Msgf) Text('System Object Types')
+Loop:        RCVF
+             MONMSG MSGID(CPF0864) EXEC(GOTO CMDLBL(END))
+             ChgVar Var(&CharNbr) Value(%Char(&MSGIDNBR))
+             ChgVar Var(&Pos) Value(%Scan(' ' &CharNbr)-1)
+             If Cond((&Pos *Eq 1)) Then(Do)
+             ChgVar Var(&CharNbr) Value('000' *Cat %Char(&MsgIdNbr))
+             EndDo
+             If Cond((&Pos *Eq 2)) Then(Do)
+             ChgVar Var(&CharNbr) Value('00' *Cat %Char(&MsgIdNbr))
+             EndDo
+             If Cond((&Pos *Eq 3)) Then(Do)
+             ChgVar Var(&CharNbr) Value('0' *Cat %Char(&MsgIdNbr))
+             EndDo
+             ChgVar Var(&MsgId) Value('OBJ' *Cat &CharNbr)
+             ChgVar Var(&MsgDta) Value(&OBJEC00001)
+             AddMsgD MsgId(&MsgId) Msgf(&Lib/&Msgf) Msg('Object +
+                          Type ' *Cat &OBJEC00001) +
+                          SecLvl(&OBJEC00001) Fmt((*CHAR 20))
+             ChgVar Var(&MsgIdNbr) Value(&MsgIdNbr+1)
+             Goto CmdLbl(Loop)
+
+End:         EndPgm
